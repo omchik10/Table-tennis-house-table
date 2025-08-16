@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>טורניר ביתי - טניס שולחן</title>
+  <style>
+    body { font-family: Arial, sans-serif; direction: rtl; margin: 10px; }
+    h1 { color: #333; text-align: center; }
+    .hidden { display: none; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; font-size: 1em; }
+    th, td { border: 1px solid #444; padding: 8px; text-align: center; word-wrap: break-word; }
+    th { background-color: #f0f0f0; }
+    input[type=text] { padding: 5px; margin: 5px; width: 90%; box-sizing: border-box; }
+    button { padding: 10px 20px; margin-top: 10px; cursor: pointer; width: 100%; max-width: 300px; display: block; margin-left: auto; margin-right: auto; }
+    @media (max-width: 600px) {
+      table { font-size: 0.9em; }
+      input[type=text] { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <h1>מארגן טורניר ביתי</h1>
+
+  <div id="setup">
+    <label>מספר שחקנים בבית: <input type="number" id="numPlayers" min="3" max="12"></label><br>
+    <button id="continueBtn">המשך</button>
+  </div>
+
+  <div id="playersInput" class="hidden"></div>
+  <div id="schedule" class="hidden"></div>
+
+  <script>
+    let numPlayers;
+
+    document.getElementById('continueBtn').addEventListener('click', enterPlayers);
+
+    function enterPlayers() {
+      numPlayers = parseInt(document.getElementById('numPlayers').value);
+      if (!numPlayers || numPlayers < 3) {
+        alert("בחר לפחות 3 שחקנים");
+        return;
+      }
+      let html = `<h2>הכנס שמות (${numPlayers} שחקנים)</h2>`;
+      for (let i = 1; i <= numPlayers; i++) {
+        html += `<input type='text' id='player${i}' placeholder='שחקן ${i}'><br>`;
+      }
+      html += `<button id='generateBtn'>צור משחקים</button>`;
+      document.getElementById('setup').classList.add('hidden');
+      document.getElementById('playersInput').innerHTML = html;
+      document.getElementById('playersInput').classList.remove('hidden');
+
+      document.getElementById('generateBtn').addEventListener('click', generateSchedule);
+    }
+
+    function generateSchedule() {
+      let players = [];
+      let allFilled = true;
+      for (let i = 1; i <= numPlayers; i++) {
+        let name = document.getElementById(`player${i}`).value.trim();
+        if (!name) {
+          allFilled = false;
+        }
+        players.push(name);
+      }
+      if (!allFilled) {
+        window.alert("לא כתבת שם של שחקן אחד או יותר");
+        return;
+      }
+
+      if (players.length % 2 !== 0) {
+        players.push("פנוי");
+        numPlayers++;
+      }
+
+      let rounds = numPlayers - 1;
+      let half = numPlayers / 2;
+      let schedule = [];
+
+      let arr = players.slice();
+      for (let r = 0; r < rounds; r++) {
+        for (let i = 0; i < half; i++) {
+          let p1 = arr[i];
+          let p2 = arr[numPlayers - 1 - i];
+          if (p1 !== "פנוי" && p2 !== "פנוי") {
+            schedule.push([i+1, numPlayers - i - 1, p1, p2]);
+          }
+        }
+        arr.splice(1, 0, arr.pop());
+      }
+
+      let html = `<h2>סדר משחקים</h2>`;
+      html += `<table><tr><th></th><th>שחקן 1</th><th>שחקן 2</th><th>תוצאה</th></tr>`;
+      schedule.forEach((m) => {
+        html += `<tr><td>${m[0]}-${m[1]}</td><td>${m[2]}</td><td>${m[3]}</td><td></td></tr>`;
+      });
+      html += `</table>`;
+      html += `<button onclick='window.print()'>הדפס</button>`;
+
+      document.getElementById('playersInput').classList.add('hidden');
+      document.getElementById('schedule').innerHTML = html;
+      document.getElementById('schedule').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
